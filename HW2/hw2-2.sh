@@ -7,4 +7,18 @@ if [ ! -e parsed.txt ]; then
 	/g' text.json | awk 'BEGIN {FS=":"} /cos_id|cos_time|cos_ename/ {print $2}' > parsed.txt
 fi
 
-#http://www.ttlsa.com/linux-command/linux-dialog-shell/ for fialog reference
+while true ; do
+	dialog --extra-button --extra-label "Option" --ok-label "Add Class" --cancel-label "Exit" --yesno test 200 200
+	main_status=$?
+
+	if [ "$main_status" -eq 0 ]; then #add class
+		dialog --title "Add class" --buildlist "Add class" 200 200 200 \
+	       		"f1" "test1" "on"\
+		       	"f2" "test2" "off"\
+		       	"f3" "test3" "on" 
+	elif [ "$main_status" -eq 1 ]; then #exit
+		break
+	else
+		echo "$main_status" #option main_status == 3
+	fi
+done
