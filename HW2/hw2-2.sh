@@ -4,7 +4,7 @@ if [ ! -e parsed.txt ]; then
 		curl 'https://timetable.nctu.edu.tw/?r=main/get_cos_list' --data 'm_acy=107&m_sem=1&m_degree=3&m_dep_id=17&m_group=**&m_grade=**&m_class=**&m_option=**&m_crsname=**&m_teaname=**&m_cos_id=**&m_cos_code=**&m_crstime=**&m_crsoutline=**&m_costype=**’' >> text.json
 	fi
 	sed 's/,/\
-	/g' text.json | awk 'BEGIN {FS=":"} /cos_id|cos_time|cos_ename/ {print $2}' > parsed.txt
+		/g' text.json | awk 'BEGIN {FS=":"} /cos_time/ {s1=$2} /cos_ename/ {printf("%s %s\n",s1,$2)}' | sed 's/\"//g' | sed 's/\ /_/g' | awk 'BEGIN{n=0} {n++;printf("%s %s off \n",n,$1)}' > parsed.txt
 fi
 
 while true ; do
@@ -12,10 +12,14 @@ while true ; do
 	main_status=$?
 
 	if [ "$main_status" -eq 0 ]; then #add class
-		dialog --title "Add class" --buildlist "Add class" 200 200 200 \
-	       		"f1" "test1" "on"\
-		       	"f2" "test2" "off"\
-		       	"f3" "test3" "on" 
+		classes=$(cat parsed.txt)
+		opt=$(dialog --output-fd 1 --title "Add class" --buildlist "Add class" 200 200 200 $classes)
+		if [ $? -eq 0 ]; then
+			sed -i '' 's/ on/ off/g' parsed.txt
+			for ln in $opt ; do
+				sed -i '' "$ln s/ off/ on/g" parsed.txt
+			done
+		fi
 	elif [ "$main_status" -eq 1 ]; then #exit
 		break
 	else
