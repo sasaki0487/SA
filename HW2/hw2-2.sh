@@ -7,6 +7,19 @@ if [ ! -e parsed.txt ]; then
 		/g' text.json | awk 'BEGIN {FS=":"} /cos_time/ {s1=$2} /cos_ename/ {printf("%s %s\n",s1,$2)}' | sed 's/\"//g' | sed 's/\ /_/g' | awk 'BEGIN{n=0} {n++;printf("%s %s off \n",n,$1)}' > parsed.txt
 fi
 
+if [ ! -e time.txt ]; then
+	cat parsed.txt | awk '{
+		split($2,chars, "")
+		printf("%s ",NR)
+		for(i=1;i<length($2);i++){
+			if(chars[i]=="-") break
+			if(chars[i]~/[0-9]/) num=chars[i]
+			else printf("%s%s ",num,chars[i])
+		}
+		printf("\n")
+	}' > time.txt
+fi
+
 timetable_status=0
 
 while true ; do
