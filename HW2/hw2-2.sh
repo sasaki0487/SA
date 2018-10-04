@@ -21,7 +21,7 @@ if [ ! -e time.txt ]; then
 fi
 
 timetable_status=0
-
+conflict=0
 while true ; do
 	#display time table
 	if [ "$timetable_status" -eq 0 ]; then #normal startup
@@ -36,14 +36,21 @@ while true ; do
 	main_status=$?
 
 	if [ "$main_status" -eq 0 ]; then #add class
-		classes=$(cat parsed.txt)
-		opt=$(dialog --output-fd 1 --title "Add class" --buildlist "Add class" 200 200 200 $classes)
-		if [ $? -eq 0 ]; then
-			sed -i '' 's/ on/ off/g' parsed.txt
-			for ln in $opt ; do
-				sed -i '' "$ln s/ off/ on/g" parsed.txt
-			done
-		fi
+		while [ $conflict -eq 0 ] ;do
+			classes=$(cat parsed.txt)
+			opt=$(dialog --output-fd 1 --title "Add class" --buildlist "Add class" 200 200 200 $classes)
+			#if saved , write status into txt file
+			if [ $? -eq 0 ]; then
+				sed -i '' 's/ on/ off/g' parsed.txt
+				for ln in $opt ; do
+					sed -i '' "$ln s/ off/ on/g" parsed.txt
+				done
+			fi
+			#after status updated, check if conflict happens
+			
+			conflict=1
+		done
+		conflict=0
 	elif [ "$main_status" -eq 1 ]; then #exit
 		break
 	else #option main_status == 3
