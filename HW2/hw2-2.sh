@@ -4,13 +4,12 @@ if [ ! -e parsed.txt ]; then
 		curl 'https://timetable.nctu.edu.tw/?r=main/get_cos_list' --data 'm_acy=107&m_sem=1&m_degree=3&m_dep_id=17&m_group=**&m_grade=**&m_class=**&m_option=**&m_crsname=**&m_teaname=**&m_cos_id=**&m_cos_code=**&m_crstime=**&m_crsoutline=**&m_costype=**’' >> text.json
 	fi
 	sed 's/,/\
-		/g' text.json | awk 'BEGIN {FS=":"} /cos_time/ {s1=$2} /cos_ename/ {printf("%s %s\n",s1,$2)}' | sed 's/\"//g' | sed 's/\ /_/g' | awk 'BEGIN{n=0} {n++;printf("%s %s off \n",n,$1)}' > parsed.txt
+		/g' text.json | awk 'BEGIN {FS=":"} /cos_time/ {s1=$2} /cos_ename/ {printf("%s %s\n",s1,$2)}' | sed 's/\"//g' | sed 's/ /_/g' | awk 'BEGIN{n=0} {n++;printf("%s %s off \n",n,$1)}' > parsed.txt
 fi
 
 if [ ! -e time.txt ]; then
 	cat parsed.txt | awk '{
 		split($2,chars, "")
-		printf("%s ",NR)
 		for(i=1;i<length($2);i++){
 			if(chars[i]=="-") break
 			if(chars[i]~/[0-9]/) num=chars[i]
@@ -18,6 +17,17 @@ if [ ! -e time.txt ]; then
 		}
 		printf("\n")
 	}' > time.txt
+fi
+
+rm time_check.txt
+for i in 1 2 3 4 5 6 7 ; do
+    	for j in "M" "N" "A" "B" "C" "D" "X" "E" "F" "G" "H" "I" "J" "K" "L" ; do
+        	echo "$i$j" >> time_check.txt
+  	done
+done
+
+if [ ! -e classname.txt ]; then
+	cat parsed.txt | awk '{printf("%s\n",$2)}' > classname.txt
 fi
 
 timetable_status=0
@@ -46,9 +56,30 @@ while true ; do
 					sed -i '' "$ln s/ off/ on/g" parsed.txt
 				done
 			fi
-			#after status updated, check if conflict happens
+			cat time_check.txt | awk '{printf("%s\n",$1)}' > time_check.tmp
+			mv time_check.tmp time_check.txt
+			#update available time
+			for ln in $opt ; do
+				out=$(sed -n "$ln p" time.txt)
+				name=$(cat parsed.txt | awk -v line=$ln '{if($1==line) printf("%s",$2)}')
+				for time in $out ; do
+					cat time_check.txt | awk -v t=$time -v n=$name '{
+						if($1==t)
+							printf("%s %s\n",$0,n)
+						else
+							printf("%s\n",$0)}' > time_check.tmp
+					mv time_check.tmp time_check.txt
+				done
+			done
+			#check conflicted classes
+			cat time_check.txt | awk '{if(NF>2) printf("%s\n",$0)}' > conflicted.txt
+			if [ -s conflicted.txt ]; then
+				dialog --title "ERROR! MULTIPLE CLASS SELECTED" --textbox conflicted.txt 200 200
+				conflict=0
+			else
+				conflict=1
+			fi
 			
-			conflict=1
 		done
 		conflict=0
 	elif [ "$main_status" -eq 1 ]; then #exit
