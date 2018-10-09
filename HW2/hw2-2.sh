@@ -46,6 +46,7 @@ while true ; do
 	main_status=$?
 
 	if [ "$main_status" -eq 0 ]; then #add class
+		cp parsed.txt tmp.txt
 		while [ $conflict -eq 0 ] ;do
 			classes=$(cat parsed.txt)
 			opt=$(dialog --output-fd 1 --title "Add class" --buildlist "Add class" 200 200 200 $classes)
@@ -55,6 +56,9 @@ while true ; do
 				for ln in $opt ; do
 					sed -i '' "$ln s/ off/ on/g" parsed.txt
 				done
+			else
+				mv tmp.txt parsed.txt
+				break
 			fi
 			cat time_check.txt | awk '{printf("%s\n",$1)}' > time_check.tmp
 			mv time_check.tmp time_check.txt
