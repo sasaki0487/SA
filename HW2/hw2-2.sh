@@ -169,6 +169,39 @@ string_gen_long(){
     echo ".  |$str4|$str8|$str12|$str16|$str20|$str24|$str28 |" >> out.txt
 }
 
+#show available classes and display
+show_available_class(){
+    lncount=$(cat time.txt | wc -l)
+
+    rm -f available.txt
+    for num in $(seq 1 $lncount)
+    do
+        ln=$(sed -n "$num p" time.txt)
+        for time in $ln ; do
+            res=$(cat time_check.txt | awk -v t=$time '{if($1==t){
+                    if(NF==1) printf("1")
+                    else printf("0")
+                }
+            }')
+            if [ $res -eq 0 ]; then
+                break
+            fi
+        done
+        if [ $res -ne 0 ]; then
+            sed -n "$num p" parsed.txt | awk '{print $2}' >> available.txt
+        fi
+    done
+    dialog --title "Available Classes" --textbox available.txt 200 200
+}
+
+#search with classtime and classname
+search(){
+    rm -f search_result.txt
+    key=$(dialog --inputbox "ENTER CLASSNAME OR TIME" 200 200 3>&1 1>&2 2>&3 3>&-)
+    cat parsed.txt | grep -i "$key" | awk '{print $2}' >> search_result.txt
+    dialog --title "Search Result" --textbox search_result.txt 200 200
+}
+
 # check if raw and parsed timetable exits
 if [ ! -e parsed.txt ]; then
 	if [ ! -e text.json ]; then
@@ -235,7 +268,6 @@ if [ ! -e classroom.txt ]; then
     sed 's/,"/\
         /g' text.json | awk 'BEGIN {FS=":"} /cos_time/ {printf("%s\n",$2)}' | sed 's/\"//g' | awk -F'[-,]' '{for(i=2;i<=NF;i+=2) printf("%s",$i)} {printf("\n")}' > classroom.txt
 fi
-
 
 # ====== generate time tables ====== #
 if [ ! -e normal_table.txt ]; then
@@ -334,15 +366,21 @@ while true ; do
 		break
     # ====== option choosed ====== #
 	else
-		dis_opt=$(dialog --output-fd 1 --checklist "Display Option" 200 200 200 \
-			"1" "Check to display classroom" off \
-			"2" "Check to display Sat. Sun. and NMXY" off)
+		dis_opt=$(dialog --output-fd 1 --title "OPTION MENU" --menu "Select Option" 200 200 200 \
+			"0" "Display classname and hide extra column"  \
+			"1" "Display classroom and hide extra column"  \
+            "2" "Display classname and show extra column"  \
+            "3" "Display classroom and show extra column"  \
+            "4" "Show available classes that haven't been chosen" \
+            "5" "Search classname or classtime")
 		if [ $? -eq 0 ]; then
-			timetable_status=0
-			for ln in $dis_opt ; do
-				timetable_status=$((ln + timetable_status))
-		        done
-			echo $timetable_status
+		    if [ "$dis_opt" -eq 4 ]; then
+                show_available_class
+            elif [ "$dis_opt" -eq 5 ]; then
+                search
+            else
+                timetable_status=$dis_opt
+            fi
 		fi
 	fi
 done
