@@ -188,7 +188,7 @@ show_available_class(){
             fi
         done
         if [ $res -ne 0 ]; then
-            sed -n "$num p" parsed.txt | awk '{print $2}' >> available.txt
+            sed -n "$num p" parsed.txt | awk '{if($3!=on)print $2}' >> available.txt
         fi
     done
     dialog --title "Available Classes" --textbox available.txt 200 200
@@ -269,6 +269,11 @@ if [ ! -e classroom.txt ]; then
         /g' text.json | awk 'BEGIN {FS=":"} /cos_time/ {printf("%s\n",$2)}' | sed 's/\"//g' | awk -F'[-,]' '{for(i=2;i<=NF;i+=2) printf("%s",$i)} {printf("\n")}' > classroom.txt
 fi
 
+#generate timetable status
+if [ ! -e status.txt ];then
+    echo 0 > status.txt
+fi
+
 # ====== generate time tables ====== #
 if [ ! -e normal_table.txt ]; then
     normal_table
@@ -290,7 +295,7 @@ fi
 
 # ====== main function ====== #
 
-timetable_status=0
+timetable_status=$(cat status.txt)
 conflict=0
 
 while true ; do
@@ -380,6 +385,7 @@ while true ; do
                 search
             else
                 timetable_status=$dis_opt
+                echo $dis_opt > status.txt
             fi
 		fi
 	fi
