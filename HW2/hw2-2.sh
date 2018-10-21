@@ -348,22 +348,22 @@ while true ; do
 				conflict=0
 			else
 				conflict=1
-			fi
-            #update classroom info
-            cp empty_time.txt room_check.txt
-			for ln in $opt ; do
-				out=$(sed -n "$ln p" time.txt)
-				name=$(cat classroom.txt | awk -v line=$ln '{if(NR==line) printf("%s",$1)}')
-				for time in $out ; do
-					cat room_check.txt | awk -v t=$time -v n=$name '{
-						if($1==t)
-							printf("%s %s\n",$0,n)
-						else
-							printf("%s\n",$0)}' > room_check.tmp
-					mv room_check.tmp room_check.txt
-				done
-			done
-            make_table
+                #update classroom info
+                cp empty_time.txt room_check.txt
+			    for ln in $opt ; do
+				    out=$(sed -n "$ln p" time.txt)
+				    name=$(cat classroom.txt | awk -v line=$ln '{if(NR==line) printf("%s",$1)}')
+				    for time in $out ; do
+					    cat room_check.txt | awk -v t=$time -v n=$name '{
+						    if($1==t)
+							    printf("%s %s\n",$0,n)
+						    else
+							    printf("%s\n",$0)}' > room_check.tmp
+					    mv room_check.tmp room_check.txt
+				    done
+			    done
+                make_table
+            fi
 		done
 		conflict=0
     # ====== exit choeesed ====== #
