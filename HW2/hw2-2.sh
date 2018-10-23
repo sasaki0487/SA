@@ -208,7 +208,7 @@ if [ ! -e parsed.txt ]; then
 		curl 'https://timetable.nctu.edu.tw/?r=main/get_cos_list' --data 'm_acy=107&m_sem=1&m_degree=3&m_dep_id=17&m_group=**&m_grade=**&m_class=**&m_option=**&m_crsname=**&m_teaname=**&m_cos_id=**&m_cos_code=**&m_crstime=**&m_crsoutline=**&m_costype=**??' >> text.json
 	fi
 	sed 's/,"/\
-		/g' text.json | awk 'BEGIN {FS=":"} /cos_time/ {s1=$2} /cos_ename/ {printf("%s %s\n",s1,$2)}' | sed 's/\"//g' | sed 's/ /_/g' | awk 'BEGIN{n=0} {n++;printf("%s %s off \n",n,$1)}' > parsed.txt
+		/g' text.json | awk 'BEGIN {FS=":"} /cos_time/ {s1=$2} /cos_ename/ {printf("%s %s\n",s1,$2)}' | sed 's/\"//g' | sed 's/ /_/g' | sed 's/\\r//g' |awk 'BEGIN{n=0} {n++;printf("%s %s off \n",n,$1)}' > parsed.txt
 fi
 
 # generate the time of classes
@@ -260,7 +260,7 @@ fi
 # generate a file which contains only classname
 if [ ! -e classname.txt ]; then
 	sed 's/,/\
-		/g' text.json | awk 'BEGIN {FS=":"} /cos_ename/ {printf("%s\n",$2)}' | sed 's/\"//g' | sed 's/ /_/g' > classname.txt
+		/g' text.json | awk 'BEGIN {FS=":"} /cos_ename/ {printf("%s\n",$2)}' | sed 's/\"//g' | sed 's/ /_/g' | sed 's/\\r//g' > classname.txt
 fi
 
 # generate a file which contains only classroom
