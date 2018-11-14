@@ -22,3 +22,22 @@
   ```
   
   and then you will get a mirrored pool !!
+## 3. Create and set datasets
+  Create three public,upload,and hidden three datasets under mypool
+  ```
+  sudo zfs create mypool/public
+  sudo zfs create mypool/upload
+  sudo zfs create mypool/hidden
+  ```
+  
+  You can use ``` zfs list ``` to check you datasets
+  
+  Then change the setting of you datasets (Steps of the three are the same , I'll only type once)
+  ```
+  # set the mountpoint of dataset
+  sudo zfs set mountpoint=/home/ftp/public mypool/public
+  # set compression of dataset , you can change gzip to gzip1,gzip2,...,gzip9 to modify the compression level
+  sudo zfs set compression=gzip mypool/public
+  ```
+  
+  Use ``` zfs get ${the status you want to check} ${the dataset you want to check} ``` to check dataset status
