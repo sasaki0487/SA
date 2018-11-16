@@ -18,7 +18,7 @@
   sudo gpart create -s GPT ada1
   sudo gpart add -t freebsd-ufs -s 4G ada1
   sudo gpart add -t freebsd-ufs -s 4G ada1
-  sudo zpool create mypool mirror /dev/adap1 /dev/adap2
+  sudo zpool create mypool mirror /dev/ada1p1 /dev/ada1p2
   ```
   
   and then you will get a mirrored pool !!
